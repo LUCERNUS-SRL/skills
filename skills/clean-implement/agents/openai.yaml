@@ -1,5 +1,5 @@
 interface:
   display_name: "Clean Implement"
-  short_description: "Implement one slice of a unit, clean and approved step by step"
+  short_description: "Slice a ticket, then build one clean, reviewed slice per session"
 policy:
   allow_implicit_invocation: false
