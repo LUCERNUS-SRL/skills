@@ -34,9 +34,8 @@ These skills push the other way. They make the agent produce work a reviewer can
 
 **User-invoked**
 
-- **[clean-slice](./skills/clean-slice/SKILL.md)**: Slice a unit of work (ticket, spec or pasted text) into thin, reviewable increments before building.
-- **[clean-implement](./skills/clean-implement/SKILL.md)**: Build one slice per session, test-first and cleaned up, with you approving at a plan and a checkpoint.
+- **[clean-implement](./skills/clean-implement/SKILL.md)**: Brief you on a ticket, let you choose its direction and slice it, then build one slice per session: a test-first draft, refined in passes, reviewed by you, landed as one commit.
 
 **Model-invoked**
 
-- **[clean-code](./skills/clean-code/SKILL.md)**: Smell checklist for writing, refactoring and reviewing code, also loaded by clean-implement.
+- **[clean-code](./skills/clean-code/SKILL.md)**: Clean Code smells, and the pass that finds them in a diff or the code you name. clean-implement runs it on every slice.

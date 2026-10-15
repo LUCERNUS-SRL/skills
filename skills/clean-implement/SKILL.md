@@ -1,54 +1,59 @@
 ---
 name: clean-implement
-description: Implement one slice of a sliced unit, clean and approved step by step.
+description: Slice a ticket, then build one slice per session, test-first, refined in passes and approved by you, as one commit each.
 disable-model-invocation: true
 ---
 
-A **slice** is one increment of a unit, written by `clean-slice` into `.scratch/<unit>/` (`UNIT.md` plus `NN-title.md` files). One slice runs per session. Fill the headings already in the slice file; keep its shape.
+Turn a **ticket** (a tracker issue, a spec, pasted text or this conversation) into clean commits, one **slice** at a time. The build follows Robert C. Martin's rule: the **first draft** is never clean code. It makes the tests pass, then **successive refinement** makes it right, one pass at a time.
 
-A **seam** is a place where behaviour can be tested, such as a public function. A **suggestion** is a note for the user, never an action.
+The user stays in the middle: they choose the direction, approve each plan, and review each slice at its checkpoint before it is committed.
 
-The **checks** are whatever the project already runs: build, type check, linter, tests. When none can be found, ask the user to name the command; without one, stop. A **move** is one baby step followed by the checks. **Red** is a check that passed at the baseline and now fails. On red, revert the move and retake it smaller; after 2 reverts of the same move, stop and show the user the failing output and what you tried.
+There are two modes. When `.scratch/{ticket}/ticket.md` exists, [build a slice](#build-a-slice); otherwise [slice the ticket](#slice-a-ticket). Take the ticket from the user's argument, else the only folder in `.scratch/` holding a `ticket.md`, else ask. One session runs one mode, and builds at most one slice.
 
-Ask open questions in rounds: number each question and give your recommended answer. A question without an explicit answer stays open; wait for the round before moving on.
+## Slice a ticket
 
-Take the unit from the user's argument, else the only folder in `.scratch/`, else ask. With no state, a change to one function that fits one commit runs without it: Plan in chat, then Build, Clean and Checkpoint. Anything larger needs `clean-slice` first.
+A slice is a **tracer bullet**: a narrow path through every layer it needs, green and shippable on its own, small enough for one session and one commit. This mode ends with the state written; the code stays as it is.
 
-## Steps
+1. **Read** the ticket (fetch it when it is a link or a path) and the code it touches. Done when you can say how the code handles the ticket's case today.
+2. **Brief** the user in one screen, in plain words, for a reader who has seen neither the ticket nor the code:
+   - the problem, and who has it;
+   - how the code handles it today, through the few places that matter;
+   - what the ticket decides, and what it leaves open;
+   - the skill for each role in `ticket.md`'s `Skills`, taken from the conversation or `AGENTS.md` when they say, otherwise proposed from the installed skills.
 
-1. **Verify** before touching anything: the branch matches `Branch`, every `done` slice's commits sit in `git log <Base>..`, `git status` is clean or the user names the dirty files, and the source has not changed. On any mismatch show it and stop, changing nothing.
-2. **Plan** with the user, in one stop. A `doing` slice resumes with its `Plan` and ticked seams; otherwise propose the lowest-numbered `todo` slice whose blockers are done or dropped. Settle:
-   - the seams, the cycle order, and any change to a public name or signature or move between modules;
-   - the blast radius of every public or protected member the slice changes or removes, and of every behaviour change under an unchanged signature: callers, overrides and implementers, serialized shapes, config and string references, other repos (grep, type hierarchy, non-code files);
-   - the behaviour for each edge case the slice decides;
-   - the checks, with exact commands and scope including dependents, and the baseline as failing test ids (rerun a failure once; a flip is flaky).
+   The user corrects it; revise and show it again. Done when the user confirms the brief and the skills.
+3. **Grill** the user with the Questions skill (`none`: grill them yourself, one round at a time), using the Domain docs skill as decisions land. On top of the Questions skill, every decision is one of two kinds:
+   - A **direction** decision shapes the solution: the approach, the data model, the scope, a public name, signature or contract, a move between modules. Lay out its options evenly, and recommend only when the user asks. A decision that could be either kind is direction.
+   - A **detail** decision is anything else, such as an edge case, a format or an error. It keeps the recommendation.
 
-   Write it under `Plan` and `Blast radius`, and set the slice `doing` on the user's go. Done when every `Done when` item maps to a seam, every consumer has a covering test or an [Ask first](#ask-first) line, and the user says go.
-3. **Build** the draft by kind, with `clean-code` loaded so the draft is written to its rules. If a test-driven development skill is available, use it for the loops. Commit on the unit branch, never on the default branch; push nothing.
-   - Feature: a red-green cycle per seam.
-   - Refactor: characterization tests first for any behaviour moved without them, then structure only, in moves.
-   - Bugfix: a failing test first, then the smallest fix, covering the base and each override.
+   Skip what the ticket or this conversation already decided. Done when every question has an answer and nothing is left assumed.
+4. **Cut** the slices. A **prefactor** (a refactor that makes a later slice easy) comes first and blocks the slices that need it. A schema or API change goes **expand-contract**: the new shape lands in one slice, the old shape goes in a later one. A slice expected to touch more than 10 files or 500 changed lines is split, or kept only with the user's approval. Work you can see coming but cannot cut yet goes under `Not yet sliced`, and work the user ruled out under `Out of scope`. Show each slice's title, kind, blockers, what it builds and its acceptance criteria; the user may merge, split or reorder, and you renumber. Done when the user approves the cut, and every acceptance criterion can be checked on its own by a test or a command.
+5. **Write** the state: `ticket.md` from [TICKET-FORMAT.md](TICKET-FORMAT.md), and one file per slice from [SLICE-FORMAT.md](SLICE-FORMAT.md). Done when the files are written; tell the user to run this skill again in a fresh session to build slice 01.
 
-   Commit each green cycle and tick its seam; red is never committed. A `Done when` that proves wrong stops the slice: propose the corrected text, change it on approval, and record it under `Decisions`. Work found beyond the slice is an Ask first item. A refactor found necessary mid-slice is the exception: commit the green work, commit the rest as a WIP commit named under `WIP`, set this slice `todo`, add the refactor as a slice that blocks this one, and stop for the user to approve it. Done when every seam is ticked, green and committed.
-4. **Clean** the draft against `clean-code`.
-   - Scope: every function the slice touches, in full (Boy Scout Rule: leave touched code cleaner), plus the class-level smells of any class that gained a member. A refactor slice's scope is the code it names; a bugfix slice's, the fixed function. Scope is hand-written code that survives the unit. A function in a later `todo` slice's `Touches` is cleaned only for what this slice changed. Cleanup larger than the slice is a suggestion.
-   - Cleanup keeps what existing callers observe (returns, errors, ordering, logs). A touched function without tests gets a characterization test first, or becomes a suggestion.
-   - Correctness pass: retry and partial-failure behaviour, concurrency, security, and tests on the error paths.
-   - Review the scope yourself with the `clean-code` smells. When it is large (over ~100 lines, 3 or more files, or a public API) and the harness can spawn sub-agents, also give a fresh-context one the scope and the diff, without the plan, to review and report findings.
-   - Accept or reject each finding, with a one-line reason per rejection; a rejected finding is not raised again. Fix the accepted ones in moves. Later passes review the lines the last fix changed and the call sites of anything whose signature or behaviour changed. At most 3 passes; leftovers become suggestions.
+## Build a slice
 
-   Done when every function in scope was checked against every applicable smell and the last pass yielded no accepted finding, or the cap was reached.
-5. **Checkpoint** in this order. Needs a decision: Ask first items, rejected findings, unpinned code, each with your recommendation. Delivered: each `Done when` item with its proof, and the cleanup. Then suggestions, baseline failures and smells outside the scope. The user approves or rejects each decision item; an approved work item becomes a new slice (next free number, `Blocked by` set) or an `Out of scope` line, as the user chooses. Apply approved cleanup and revert rejected cleanup in moves.
-6. **Finish**: commit the build, then the clean-up as a separate `refactor:` commit, each subject `<unit> NN: <what>`, the body carrying decisions and what was left out. Fill `Commits` and `Result`, set the slice `done`, add its decisions to `UNIT.md` (one that outlives the unit also goes to the ticket, an ADR or `CONTEXT.md`), and tell the user to start the next slice in a fresh session. After the last slice, offer to delete the unit's folder.
+The **checks** are the `Checks` line of `ticket.md`; the **baseline** is what fails before the slice starts. A **move** is one small edit followed by the checks. A move that stays green is staged (`git add -A`). In Refine and in a refactor slice, a move that turns a check **red** (passing at the baseline, failing now) is undone with `git restore .` and deleting any file it created, then retaken smaller. After 2 undos of the same move, stop and show the user the failing output and what you tried.
 
-Done when the user has approved the checkpoint, the checks show no failures beyond the baseline, and the slice is committed and marked.
+The slice lives in the working tree until Finish makes its one commit.
 
-## Ask first
+1. **Pick** the `in-progress` slice when there is one (a session was interrupted: resume from its ticked seams), else the **frontier**: the lowest-numbered `open` slice whose blockers are all `done` or `cancelled`. Done when the slice is chosen, the current branch is `Branch`, and the working tree holds nothing but this slice's own work. On a mismatch, show it and stop.
+2. **Plan** the slice under its `Plan`, in the shape of [SLICE-FORMAT.md](SLICE-FORMAT.md):
+   - the seams, the public places where its behaviour is tested, each with its test level;
+   - the **blast radius** of everything the slice changes: callers, overrides and implementers, serialized shapes, config and string references, searched across the repo including non-code files;
+   - the baseline: run the checks, and rerun a failure once (one that passes on the rerun is flaky).
 
-Collect these as you work and put them to the user at the checkpoint, together. Only items that are new and unrequested belong here.
+   Show the user one screen: a recap for a reader returning cold (what this slice changes and where, what will work afterwards and how to try it, the decisions it rests on, by name), then any direction question the plan raises, then one line each for the seams, the blast radius and the baseline. The user may cancel the slice instead: set it `cancelled` with why under `Result`, and pick again. Done when every acceptance criterion maps to a seam, everything in the blast radius has a covering test or is a follow-up, and the user says go. Set the slice `in-progress`.
+3. **Draft** the first draft with the Test-first skill (`none`: the rules here), seam by seam: a test that fails for the expected reason, then the least code that turns it green with no other check red, then tick the seam. The draft only has to work; making it right is Refine's job.
+   - A feature runs one red-green cycle per seam.
+   - A bugfix starts with a test that fails on the bug, then the smallest fix.
+   - A refactor changes structure only, under tests that already pin the behaviour.
 
-- A change to a public name or signature, a move between modules, or a data, migration or contract change found mid-build: stop and ask at once.
-- Deleting an exported or public member found dead, after a repo-wide search that included non-code files.
-- Code with no tests, where pinning its behaviour would outgrow the slice.
-- A bug found: its location, what is wrong, and a suggested fix, for the user to slice.
-- Work found beyond the slice.
+   Before changing code that has no tests, write **characterization tests** through its seams; when that would outgrow the slice, the code stays as it is and becomes a follow-up. A direction decision that surfaces mid-draft stops the draft: put it to the user at once. A detail decision takes your recommendation. A refactor this slice needs first also stops the draft: the user folds it into this slice, or makes it a new slice that blocks this one, in which case set the draft aside with `git stash push -u` and set this slice back to `open`. Done when every seam is ticked and the checks show nothing red.
+4. **Refine** in at most 3 passes, each run by a new fresh-context sub-agent and starting over on the whole result, since every fix can expose the next smell:
+   - Give the sub-agent the `clean-code` skill and the slice's diff (`git diff HEAD`), never the plan, and have it run a pass and return the findings. When the harness has no sub-agents, run the pass yourself, reading the scope from the files.
+   - Fix each finding in moves, or reject it with a one-line reason. A rejected finding raised again stays rejected. A finding whose fix is a contract change becomes a direction decision at the checkpoint.
+   - Log the pass, as the pass log in [CHECKPOINT-FORMAT.md](CHECKPOINT-FORMAT.md) shows.
+
+   Done when a pass ends with nothing fixed, or the last pass is done, with the checks showing nothing red. Findings still open then become follow-ups.
+5. **Checkpoint**: show the slice in the shape of [CHECKPOINT-FORMAT.md](CHECKPOINT-FORMAT.md). The user's manual review starts here. A **follow-up** is anything found outside the slice: a bug, more work, dead public code, untested code too costly to characterize, a `Not yet sliced` item now sharp enough to cut, an `open` slice this one changed (what it builds, its acceptance criteria, its blockers). For each one the user picks a new slice, an edit to an `open` slice, a line under `Out of scope`, or cancelled; work that corrects a `done` slice is a new slice. A change the user asks for is made in moves, followed by Refine and a new checkpoint. Done when every `open` slice has been read against this one and the user approves the checkpoint.
+6. **Finish**: commit the slice on `Branch`, with a message in the shape of [COMMIT-FORMAT.md](COMMIT-FORMAT.md). Fill the slice's `Result`, set it `done`, and add the slice's decisions under `Decisions` in `ticket.md`. Write each follow-up where the user put it, a new slice in the shape of [SLICE-FORMAT.md](SLICE-FORMAT.md); a `Not yet sliced` item that became a slice leaves that section. Tell the user to build the next slice in a fresh session; once no `open` slice is left, offer to delete `.scratch/{ticket}/`. Done when one commit holds the whole slice, every follow-up is written where the user put it, and the slice is `done`.
