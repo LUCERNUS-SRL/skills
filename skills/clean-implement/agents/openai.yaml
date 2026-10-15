@@ -1,0 +1,5 @@
+interface:
+  display_name: "Clean Implement"
+  short_description: "Implement one slice of a unit, clean and approved step by step"
+policy:
+  allow_implicit_invocation: false
