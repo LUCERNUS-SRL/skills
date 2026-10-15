@@ -1,0 +1,5 @@
+interface:
+  display_name: "Clean Slice"
+  short_description: "Slice a unit of work into reviewable increments"
+policy:
+  allow_implicit_invocation: false
