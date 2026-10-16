@@ -29,7 +29,8 @@ Done when every function and class in scope has been checked against every smell
 
 ### Functions
 
-- **Mixed Levels of Abstraction**: a business decision sits beside string parsing. → Extract the detail behind a name at the caller's level, and order functions so each caller sits above its callees.
+- **Mixed Levels of Abstraction**: a business decision sits beside string parsing. → Extract the detail behind a name at the caller's level.
+- **Vertical Separation**: a method sits far from its first caller, so following it means jumping around the file. → Keep the member layout the project or language sets (statics, fields, constructors, properties, visibility groups); inside a group, order methods by first use, each below the method that first calls it.
 - **Long Function**: over about 20 lines, running separable phases. → Split at the phases. A long function that reads clearly at one level stays whole.
 - **Deep Nesting**: deeper than 2 levels, burying the main path. → Guard clauses, an extracted block, or a named condition.
 - **Command-Query Separation**: a function both changes state and answers a question about it. → Split it into a command and a query. Returning an error, a status or a created id is no query, and atomic pairs stay combined (`pop`, compare-and-set, get-or-create).
