@@ -1,0 +1,5 @@
+interface:
+  display_name: "Recon"
+  short_description: "How large codebases on your stack do it"
+policy:
+  allow_implicit_invocation: false

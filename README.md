@@ -35,6 +35,7 @@ These skills push the other way. They make the agent produce work a reviewer can
 **User-invoked**
 
 - **[clean-implement](./skills/clean-implement/SKILL.md)**: Brief you on a ticket, let you choose its direction and slice it, then build one slice per session: a test-first draft, refined in passes, reviewed by you, landed as one commit.
+- **[recon](./skills/recon/SKILL.md)**: Recon how large codebases on your stack solve a question, and get up to 3 approaches, each with the repos that use it.
 
 **Model-invoked**
 
