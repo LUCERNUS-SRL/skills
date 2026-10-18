@@ -1,6 +1,6 @@
 # Note Format
 
-A note holds what one repo shows. Each sub-agent returns its notes in one message.
+A note holds what one repo shows. Each sub-agent returns its repo's note.
 
 ## Template
 
