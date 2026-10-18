@@ -9,8 +9,6 @@ The report goes to the user as one message once Group is done.
 
 - **Stack**: {stack}
 - **Constraints**: {constraints}
-- **Repos read**: {N}
-- **Consensus**: {approach} ({k} of {N}) | none
 
 ### 1. {Approach name}
 
@@ -37,8 +35,6 @@ Fits when {condition in the project}; costs {cost in the project}.
 
 - **Stack**: .NET 8, ASP.NET Core
 - **Constraints**: several teams, one database, one deployable
-- **Repos read**: 8
-- **Consensus**: Module projects (5 of 8)
 
 ### 1. Module projects
 
@@ -89,4 +85,3 @@ Fits when changes land one use case at a time; costs the module boundary: any fe
 - **Why** is left out when no note behind the approach gives one.
 - **Versus the project** is left out when the project has no code for the question yet.
 - **Fits when and costs** speak in the project's terms: its constraints and its code.
-- **Repos read** adds `(thin survey)` when fewer than 5 repos were read.
